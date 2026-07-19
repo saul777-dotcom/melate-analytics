@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#08101f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Melate Analytics">
+<title>Melate Analytics</title>
+<style>
+:root{--bg:#07101e;--card:#111b2e;--card2:#17243a;--text:#f5f7fb;--muted:#9eb0c8;--accent:#6ee7b7;--hot:#ff7a59;--cold:#60a5fa;--line:#24344f}
+*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:linear-gradient(180deg,#07101e,#0c1526);color:var(--text)}
+.wrap{max-width:900px;margin:auto;padding:18px 14px 70px}
+header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:16px}h1{font-size:1.5rem;margin:0 0 4px}p{margin:0}.muted,.note,footer{color:var(--muted)}
+.badge{background:#17243a;border:1px solid var(--line);padding:7px 10px;border-radius:999px;color:var(--accent);font-size:.78rem}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+button{border:0;border-radius:12px;padding:12px;font-weight:750;font-size:.95rem}.tab{background:var(--card);color:var(--muted);border:1px solid var(--line)}.tab.active{background:var(--accent);color:#06120f}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:620px){.grid{grid-template-columns:1fr}}
+.card{background:rgba(17,27,46,.96);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:12px}h2{font-size:1rem;margin:0 0 12px}
+.balls{display:flex;gap:8px;flex-wrap:wrap}.ball{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:#f5f7fb;color:#09111e;font-weight:800;box-shadow:inset 0 -5px 10px rgba(0,0,0,.18)}
+.chips{display:flex;gap:7px;flex-wrap:wrap}.chip{padding:8px 10px;border-radius:999px;background:var(--card2);border:1px solid var(--line);font-weight:800}.hot{border-color:var(--hot)}.cold{border-color:var(--cold)}
+.scores{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:12px}@media(max-width:560px){.scores{grid-template-columns:repeat(3,1fr)}}
+.score{background:var(--card2);border-radius:14px;text-align:center;padding:10px}.score b{display:block;font-size:1.15rem}.score span{font-size:.72rem;color:var(--muted)}
+.primary{background:var(--accent);color:#06120f;width:100%;margin-top:4px}.generated{margin-top:14px}
+.rank{display:grid;grid-template-columns:42px 1fr 65px 65px;gap:8px;align-items:center;padding:8px;border-radius:10px;background:var(--card2);margin-bottom:7px}
+.bar{height:7px;background:#26364f;border-radius:999px;overflow:hidden}.fill{height:100%;background:var(--accent)}
+.tiny{font-size:.74rem;color:var(--muted);text-align:right}.hist{padding:10px 0;border-bottom:1px solid var(--line);font-size:.86rem}.hist b{display:block;margin-bottom:4px}
+.note{font-size:.78rem;line-height:1.45;margin-top:12px}footer{text-align:center;font-size:.74rem;padding-top:10px}
+</style>
+</head>
+<body>
+<main class="wrap">
+<header><div><h1>Melate Analytics</h1><p class="muted">Laboratorio estadístico privado</p></div><span class="badge">v0.2</span></header>
+<nav class="tabs"><button class="tab active" data-game="melate">Melate</button><button class="tab" data-game="revancha">Revancha</button><button class="tab" data-game="revanchita">Revanchita</button></nav>
+<section class="card"><h2>Último resultado cargado</h2><div id="latest" class="balls"></div><p id="info" class="muted" style="margin-top:10px"></p></section>
+<div class="grid">
+<section class="card"><h2>🔥 Números calientes</h2><div id="hot" class="chips"></div></section>
+<section class="card"><h2>❄️ Números fríos</h2><div id="cold" class="chips"></div></section>
+</div>
+<section class="card"><h2>🧠 Mayor índice estadístico</h2><div id="scores" class="scores"></div><button class="primary" id="generate">Generar combinación analítica</button><div id="generated" class="balls generated"></div><p class="note">El índice es experimental y combina frecuencia total, frecuencia reciente y retraso. No representa una probabilidad real de ganar ni garantiza resultados.</p></section>
+<section class="card"><h2>Ranking de números</h2><div id="ranking"></div></section>
+<section class="card"><h2>Historial cargado</h2><div id="history"></div></section>
+<footer>Melate Analytics · Uso privado</footer>
+</main>
+<script>
+const DATA={
+melate:[
+{draw:4240,date:"17/07/2026",nums:[2,23,39,41,49,55]},{draw:4239,date:"15/07/2026",nums:[14,23,31,50,51,52]},{draw:4238,date:"12/07/2026",nums:[7,11,15,20,24,40]},{draw:4237,date:"10/07/2026",nums:[1,2,20,35,48,56]},{draw:4236,date:"08/07/2026",nums:[22,34,38,43,44,45]},{draw:4235,date:"05/07/2026",nums:[13,19,22,37,46,48]},{draw:4234,date:"03/07/2026",nums:[11,12,15,19,36,44]},{draw:4233,date:"01/07/2026",nums:[2,4,8,13,14,22]},{draw:4232,date:"28/06/2026",nums:[3,15,28,30,32,54]},{draw:4231,date:"26/06/2026",nums:[6,8,9,16,23,50]},{draw:4230,date:"24/06/2026",nums:[8,17,21,37,43,54]},{draw:4229,date:"21/06/2026",nums:[10,12,23,28,43,56]},{draw:4228,date:"19/06/2026",nums:[5,12,25,37,39,43]},{draw:4227,date:"17/06/2026",nums:[2,6,8,12,29,34]},{draw:4226,date:"14/06/2026",nums:[19,23,34,41,48,55]}],
+revancha:[
+{draw:4240,date:"17/07/2026",nums:[8,26,30,46,53,55]},{draw:4239,date:"15/07/2026",nums:[3,18,32,47,50,51]},{draw:4238,date:"12/07/2026",nums:[6,10,13,18,39,40]},{draw:4237,date:"10/07/2026",nums:[8,27,28,33,39,55]},{draw:4236,date:"08/07/2026",nums:[3,15,25,49,51,56]},{draw:4235,date:"05/07/2026",nums:[2,23,25,30,32,54]},{draw:4234,date:"03/07/2026",nums:[1,5,6,13,35,43]},{draw:4233,date:"01/07/2026",nums:[2,25,31,32,52,55]},{draw:4232,date:"28/06/2026",nums:[7,19,24,28,49,55]},{draw:4231,date:"26/06/2026",nums:[4,11,17,34,40,47]},{draw:4230,date:"24/06/2026",nums:[6,10,17,29,42,53]},{draw:4229,date:"21/06/2026",nums:[2,6,27,28,41,53]},{draw:4228,date:"19/06/2026",nums:[1,13,17,31,38,53]},{draw:4227,date:"17/06/2026",nums:[4,18,34,45,55,56]},{draw:4226,date:"14/06/2026",nums:[3,22,35,38,42,53]}],
+revanchita:[
+{draw:4240,date:"17/07/2026",nums:[1,4,5,33,34,46]},{draw:4239,date:"15/07/2026",nums:[15,17,34,35,41,42]},{draw:4238,date:"12/07/2026",nums:[4,8,21,25,27,40]},{draw:4237,date:"10/07/2026",nums:[10,14,19,38,40,54]},{draw:4236,date:"08/07/2026",nums:[4,8,10,22,27,42]},{draw:4235,date:"05/07/2026",nums:[7,12,14,22,52,55]},{draw:4234,date:"03/07/2026",nums:[2,12,38,52,54,55]},{draw:4233,date:"01/07/2026",nums:[4,15,25,26,27,49]},{draw:4232,date:"28/06/2026",nums:[8,10,20,24,31,56]},{draw:4231,date:"26/06/2026",nums:[4,7,9,36,38,39]},{draw:4230,date:"24/06/2026",nums:[4,18,21,23,39,45]},{draw:4229,date:"21/06/2026",nums:[2,8,11,18,19,21]},{draw:4228,date:"19/06/2026",nums:[13,15,16,22,36,37]},{draw:4227,date:"17/06/2026",nums:[14,24,39,40,47,54]},{draw:4226,date:"14/06/2026",nums:[5,10,13,30,43,45]}]};
+let current="melate";
+function analyze(draws){let s=[];for(let n=1;n<=56;n++){let total=0,recent=0,last=-1;draws.forEach((d,i)=>{if(d.nums.includes(n)){total++;if(i<5)recent++;if(last<0)last=i}});s.push({n,total,recent,delay:last<0?draws.length:last})}
+let mt=Math.max(...s.map(x=>x.total),1),mr=Math.max(...s.map(x=>x.recent),1),md=Math.max(...s.map(x=>x.delay),1);
+s.forEach(x=>x.score=Math.round((.42*x.total/mt+.38*x.recent/mr+.20*x.delay/md)*100));return s.sort((a,b)=>b.score-a.score||b.total-a.total||a.n-b.n)}
+function ball(n){return `<div class="ball">${String(n).padStart(2,"0")}</div>`}
+function render(){let d=DATA[current],a=analyze(d),latest=d[0];document.getElementById("latest").innerHTML=latest.nums.map(ball).join("");document.getElementById("info").textContent=`Sorteo ${latest.draw} · ${latest.date} · ${d.length} sorteos cargados`;
+let by=[...a].sort((x,y)=>y.total-x.total||y.recent-x.recent);document.getElementById("hot").innerHTML=by.slice(0,8).map(x=>`<span class="chip hot">${String(x.n).padStart(2,"0")} · ${x.total}</span>`).join("");
+document.getElementById("cold").innerHTML=[...a].sort((x,y)=>x.total-y.total||y.delay-x.delay).slice(0,8).map(x=>`<span class="chip cold">${String(x.n).padStart(2,"0")} · ${x.total}</span>`).join("");
+document.getElementById("scores").innerHTML=a.slice(0,6).map(x=>`<div class="score"><b>${String(x.n).padStart(2,"0")}</b><span>Índice ${x.score}</span></div>`).join("");
+let max=Math.max(...a.map(x=>x.score),1);document.getElementById("ranking").innerHTML=a.slice(0,20).map(x=>`<div class="rank"><b>${String(x.n).padStart(2,"0")}</b><div class="bar"><div class="fill" style="width:${x.score/max*100}%"></div></div><span class="tiny">freq ${x.total}</span><span class="tiny">${x.score} pts</span></div>`).join("");
+document.getElementById("history").innerHTML=d.map(x=>`<div class="hist"><b>Sorteo ${x.draw} · ${x.date}</b>${x.nums.map(n=>String(n).padStart(2,"0")).join(" · ")}</div>`).join("");document.getElementById("generated").innerHTML=""}
+function pick(){let pool=analyze(DATA[current]).map(x=>({...x})),out=[];while(out.length<6){let weights=pool.map(x=>Math.max(1,x.score)),sum=weights.reduce((a,b)=>a+b,0),r=Math.random()*sum,i=0;for(;i<pool.length;i++){r-=weights[i];if(r<=0)break}i=Math.min(i,pool.length-1);out.push(pool[i].n);pool.splice(i,1)}out.sort((a,b)=>a-b);document.getElementById("generated").innerHTML=out.map(ball).join("")}
+document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{current=b.dataset.game;document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x===b));render()});
+document.getElementById("generate").onclick=pick;render();
+</script>
+</body>
+</html>

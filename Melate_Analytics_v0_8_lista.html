@@ -1,0 +1,832 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#07101e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Melate Analytics">
+<title>Melate Analytics v0.8</title>
+<style>
+:root{
+ --bg:#07101e;--card:#111b2e;--card2:#17243a;--card3:#1b2a43;--text:#f5f7fb;
+ --muted:#9eb0c8;--accent:#6ee7b7;--hot:#ff7a59;--cold:#60a5fa;--warn:#f6c453;--line:#24344f;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:linear-gradient(180deg,#07101e,#0c1526);color:var(--text)}
+.wrap{max-width:980px;margin:auto;padding:18px 14px 70px}
+header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:14px}
+h1{font-size:1.55rem;margin:0 0 4px}h2{font-size:1rem;margin:0 0 12px}h3{font-size:.88rem;margin:0 0 8px}
+p{margin:0}.muted,.note,footer{color:var(--muted)}
+.badge{background:#17243a;border:1px solid var(--line);padding:7px 10px;border-radius:999px;color:var(--accent);font-size:.78rem;white-space:nowrap}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+button,select{border:0;border-radius:12px;padding:12px;font-weight:750;font-size:.92rem}
+.tab{background:var(--card);color:var(--muted);border:1px solid var(--line)}.tab.active{background:var(--accent);color:#06120f}
+.card{background:rgba(17,27,46,.96);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:12px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+@media(max-width:650px){.grid2{grid-template-columns:1fr}.grid3{grid-template-columns:1fr 1fr}}
+.balls{display:flex;gap:8px;flex-wrap:wrap}.ball{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:#f5f7fb;color:#09111e;font-weight:800;box-shadow:inset 0 -5px 10px rgba(0,0,0,.18)}
+.chips{display:flex;gap:7px;flex-wrap:wrap}.chip{padding:8px 10px;border-radius:999px;background:var(--card2);border:1px solid var(--line);font-weight:800}
+.hot{border-color:var(--hot)}.cold{border-color:var(--cold)}.late{border-color:var(--warn)}
+.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.toolbar label{font-size:.8rem;color:var(--muted)}
+select{background:var(--card2);color:var(--text);border:1px solid var(--line)}
+.status{padding:10px 12px;border-radius:12px;background:var(--card2);border:1px solid var(--line);font-size:.78rem;color:var(--muted);margin-bottom:12px}
+.status.ok{color:var(--accent)}.status.warn{color:var(--warn)}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}@media(max-width:600px){.metrics{grid-template-columns:repeat(2,1fr)}}
+.metric{background:var(--card2);border-radius:14px;padding:11px}.metric b{display:block;font-size:1.1rem}.metric span{font-size:.72rem;color:var(--muted)}
+.scores{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:12px}@media(max-width:560px){.scores{grid-template-columns:repeat(3,1fr)}}
+.score{background:var(--card2);border-radius:14px;text-align:center;padding:10px}.score b{display:block;font-size:1.15rem}.score span{font-size:.72rem;color:var(--muted)}
+.primary{background:var(--accent);color:#06120f;width:100%}.secondary{background:var(--card3);color:var(--text);border:1px solid var(--line);width:100%}
+.generated{margin-top:14px}
+.rank{display:grid;grid-template-columns:42px 1fr 64px 64px;gap:8px;align-items:center;padding:8px;border-radius:10px;background:var(--card2);margin-bottom:7px}
+.bar{height:7px;background:#26364f;border-radius:999px;overflow:hidden}.fill{height:100%;background:var(--accent)}
+.tiny{font-size:.72rem;color:var(--muted);text-align:right}
+.hist{padding:10px 0;border-bottom:1px solid var(--line);font-size:.84rem}.hist b{display:block;margin-bottom:4px}
+.pair{display:flex;justify-content:space-between;gap:10px;padding:9px 10px;background:var(--card2);border-radius:10px;margin-bottom:6px;font-size:.83rem}
+.note{font-size:.76rem;line-height:1.5;margin-top:12px}footer{text-align:center;font-size:.73rem;padding-top:10px}
+.hidden{display:none}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+@media(max-width:700px){.grid4{grid-template-columns:repeat(2,1fr)}}
+.inspector{display:grid;grid-template-columns:120px 1fr;gap:12px;align-items:start}
+@media(max-width:560px){.inspector{grid-template-columns:1fr}}
+.detailgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+@media(max-width:560px){.detailgrid{grid-template-columns:repeat(2,1fr)}}
+.bt-controls{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.wf-controls{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
+@media(max-width:720px){.wf-controls{grid-template-columns:1fr}}
+.bt-table{width:100%;border-collapse:collapse;font-size:.78rem}
+.bt-table th,.bt-table td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:right}
+.bt-table th:first-child,.bt-table td:first-child{text-align:left}
+.bt-good{color:var(--accent);font-weight:800}.bt-warn{color:var(--warn)}
+.progress{height:8px;background:#26364f;border-radius:999px;overflow:hidden;margin-top:8px}
+.progress>div{height:100%;background:var(--accent);width:0}
+.matrix-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+@media(max-width:620px){.matrix-summary{grid-template-columns:1fr}}
+.winner-card{background:linear-gradient(180deg,var(--card2),var(--card3));border:1px solid var(--accent);border-radius:16px;padding:14px;margin-top:12px}
+.winner-card h3{margin:0 0 8px}
+.delta-pos{color:var(--accent);font-weight:800}.delta-neg{color:var(--warn);font-weight:800}
+.matrix-note{font-size:.72rem;color:var(--muted);line-height:1.45;margin-top:8px}
+.matrix-scroll{overflow-x:auto}
+.pill{display:inline-block;padding:5px 8px;border-radius:999px;background:var(--card3);border:1px solid var(--line);font-size:.72rem;margin:2px 4px 2px 0}
+</style>
+</head>
+<body>
+<main class="wrap">
+<header>
+ <div><h1>Melate Analytics</h1><p class="muted">Laboratorio estadístico privado · historial completo</p></div>
+ <span class="badge">v0.7</span>
+</header>
+
+<div id="dataStatus" class="status">Cargando bases históricas…</div>
+
+<nav class="tabs">
+ <button class="tab active" data-game="melate">Melate</button>
+ <button class="tab" data-game="revancha">Revancha</button>
+ <button class="tab" data-game="revanchita">Revanchita</button>
+</nav>
+
+<section class="card">
+ <div class="toolbar">
+  <div><h2>Ventana de análisis</h2></div>
+  <select id="windowSelect" aria-label="Ventana de análisis">
+   <option value="10">Últimos 10</option>
+   <option value="20">Últimos 20</option>
+   <option value="50">Últimos 50</option>
+   <option value="100" selected>Últimos 100</option>
+   <option value="500">Últimos 500</option>
+   <option value="all">Todo el historial</option>
+  </select>
+ </div>
+</section>
+
+<section class="card">
+ <h2>Último resultado cargado</h2>
+ <div id="latest" class="balls"></div>
+ <p id="info" class="muted" style="margin-top:10px"></p>
+</section>
+
+<section class="card">
+ <h2>Base analizada</h2>
+ <div class="metrics">
+  <div class="metric"><b id="totalDraws">—</b><span>Sorteos disponibles</span></div>
+  <div class="metric"><b id="windowDraws">—</b><span>Sorteos en ventana</span></div>
+  <div class="metric"><b id="avgSum">—</b><span>Suma promedio</span></div>
+  <div class="metric"><b id="avgEven">—</b><span>Pares promedio</span></div>
+ </div>
+</section>
+
+<div class="grid2">
+ <section class="card"><h2>🔥 Números calientes</h2><div id="hot" class="chips"></div></section>
+ <section class="card"><h2>❄️ Números fríos</h2><div id="cold" class="chips"></div></section>
+</div>
+
+<section class="card"><h2>⏳ Más atrasados</h2><div id="late" class="chips"></div><p class="note">“Atrasado” solo describe cuántos sorteos han pasado desde su última aparición. No significa que el número esté obligado a salir.</p></section>
+
+<section class="card">
+ <h2>🧠 Mayor índice analítico</h2>
+ <div id="scores" class="scores"></div>
+ <div class="grid4">
+  <button class="primary model" data-model="balanced">Equilibrada</button>
+  <button class="secondary model" data-model="trend">Tendencia</button>
+  <button class="secondary model" data-model="historic">Histórica</button>
+  <button class="secondary model" data-model="delayed">Atraso descriptivo</button>
+ </div>
+ <div id="generated" class="balls generated"></div>
+ <p id="generatedWhy" class="note"></p>
+ <p class="note">El índice es una puntuación heurística para ordenar señales históricas y recientes. No es una probabilidad de ganar. En un sorteo aleatorio correctamente realizado, cada combinación válida mantiene la misma probabilidad matemática antes del sorteo.</p>
+</section>
+
+<div class="grid2">
+ <section class="card"><h2>🔗 Parejas más frecuentes</h2><div id="pairs"></div></section>
+ <section class="card"><h2>📊 Perfil de la ventana</h2><div id="profile"></div></section>
+</div>
+
+<div class="grid2">
+ <section class="card"><h2>🔺 Tríos más frecuentes</h2><div id="triples"></div></section>
+ <section class="card">
+  <h2>🔎 Ficha de número</h2>
+  <div class="inspector">
+   <select id="numberSelect" aria-label="Número a inspeccionar"></select>
+   <div>
+    <div id="numberDetails" class="detailgrid"></div>
+    <h3 style="margin-top:12px">Compañeros más frecuentes en la ventana</h3>
+    <div id="companions" class="chips"></div>
+   </div>
+  </div>
+ </section>
+</div>
+
+<section class="card">
+ <h2>🧪 Laboratorio de backtesting</h2>
+ <p class="note" style="margin-top:0">Prueba cada modelo sobre sorteos pasados usando únicamente información anterior a cada sorteo. La selección del backtest es determinista: toma los 6 números mejor posicionados por cada modelo.</p>
+ <div class="bt-controls">
+  <select id="btTests" aria-label="Cantidad de sorteos a probar">
+   <option value="50">Probar 50 sorteos</option>
+   <option value="100" selected>Probar 100 sorteos</option>
+   <option value="200">Probar 200 sorteos</option>
+   <option value="500">Probar 500 sorteos</option>
+  </select>
+  <select id="btWindow" aria-label="Ventana de entrenamiento">
+   <option value="20">Entrenar con 20 previos</option>
+   <option value="50">Entrenar con 50 previos</option>
+   <option value="100" selected>Entrenar con 100 previos</option>
+   <option value="200">Entrenar con 200 previos</option>
+   <option value="500">Entrenar con 500 previos</option>
+  </select>
+ </div>
+ <button id="runBacktest" class="primary">Ejecutar backtesting</button>
+ <div id="btStatus" class="note"></div>
+ <div class="progress"><div id="btProgress"></div></div>
+ <div id="btResults" style="margin-top:12px"></div>
+ <p class="note">Referencia matemática: al elegir 6 números de 56 frente a un resultado de 6 números, la coincidencia esperada de una selección aleatoria es 36/56 ≈ 0.643 números por sorteo. Un resultado histórico superior en una muestra no demuestra una ventaja futura.</p>
+</section>
+
+<section class="card">
+ <h2>🧭 Validación anidada walk-forward v0.8</h2>
+ <p class="note" style="margin-top:0">Evalúa la estrategia completa de selección. En cada periodo exterior, la app elige primero el mejor modelo y ventana usando únicamente varios periodos internos más antiguos; después prueba esa elección en el siguiente bloque, que permaneció fuera de esa selección. Repite el proceso en distintos momentos históricos y compara el resultado agregado contra la referencia matemática y simulaciones de azar.</p>
+ <div class="wf-controls">
+  <select id="mxValidation" aria-label="Tamaño de cada prueba exterior">
+   <option value="50">Prueba exterior: 50 sorteos</option>
+   <option value="100" selected>Prueba exterior: 100 sorteos</option>
+   <option value="200">Prueba exterior: 200 sorteos</option>
+  </select>
+  <select id="mxFoldSize" aria-label="Tamaño de cada periodo interno">
+   <option value="50">Periodo interno: 50 sorteos</option>
+   <option value="100" selected>Periodo interno: 100 sorteos</option>
+   <option value="200">Periodo interno: 200 sorteos</option>
+  </select>
+  <select id="mxFolds" aria-label="Cantidad de pruebas exteriores">
+   <option value="4">Comparar 4 periodos exteriores</option>
+   <option value="6" selected>Comparar 6 periodos exteriores</option>
+   <option value="8">Comparar 8 periodos exteriores</option>
+   <option value="10">Comparar 10 periodos exteriores</option>
+  </select>
+  <select id="mxInnerFolds" aria-label="Cantidad de periodos internos">
+   <option value="3">Seleccionar con 3 periodos internos</option>
+   <option value="4" selected>Seleccionar con 4 periodos internos</option>
+   <option value="5">Seleccionar con 5 periodos internos</option>
+  </select>
+  <select id="mxSims" aria-label="Simulaciones de azar">
+   <option value="2000">2,000 simulaciones de azar</option>
+   <option value="5000" selected>5,000 simulaciones de azar</option>
+   <option value="10000">10,000 simulaciones de azar</option>
+  </select>
+ </div>
+ <button id="runMatrix" class="primary">Ejecutar validación anidada completa</button>
+ <div id="mxStatus" class="note"></div>
+ <div class="progress"><div id="mxProgress"></div></div>
+ <div id="mxResults" class="matrix-scroll" style="margin-top:12px"></div>
+ <div id="mxWinner"></div>
+ <button id="generateWinner" class="secondary hidden" style="margin-top:10px">Usar estrategia seleccionada para el próximo sorteo (experimental)</button>
+ <div id="mxGenerated" class="balls generated"></div>
+ <p class="matrix-note">La prueba principal es el rendimiento agregado en los periodos exteriores, porque cada elección se hace sin ver su bloque de prueba. El intervalo de confianza, el valor p aproximado y las simulaciones son herramientas descriptivas; no convierten un patrón histórico en una garantía de ventaja futura. Los sorteos recientes ya observados en versiones anteriores no deben considerarse una reserva confirmatoria completamente nueva.</p>
+</section>
+
+<section class="card"><h2>Ranking de números</h2><div id="ranking"></div></section>
+<section class="card"><h2>Últimos sorteos</h2><div id="history"></div></section>
+
+<footer>Melate Analytics v0.8 · Uso privado · Datos históricos cargados desde archivos CSV del repositorio</footer>
+</main>
+
+<script>
+const FALLBACK={
+melate:[
+{draw:4240,date:"17/07/2026",nums:[2,23,39,41,49,55],extra:14},{draw:4239,date:"15/07/2026",nums:[14,23,31,50,51,52],extra:33},{draw:4238,date:"12/07/2026",nums:[7,11,15,20,24,40],extra:54},{draw:4237,date:"10/07/2026",nums:[1,2,20,35,48,56],extra:4},{draw:4236,date:"08/07/2026",nums:[22,34,38,43,44,45],extra:56},{draw:4235,date:"05/07/2026",nums:[13,19,22,37,46,48],extra:28},{draw:4234,date:"03/07/2026",nums:[11,12,15,19,36,44],extra:52},{draw:4233,date:"01/07/2026",nums:[2,4,8,13,14,22],extra:37},{draw:4232,date:"28/06/2026",nums:[3,15,28,30,32,54],extra:19},{draw:4231,date:"26/06/2026",nums:[6,8,9,16,23,50],extra:24},{draw:4230,date:"24/06/2026",nums:[8,17,21,37,43,54],extra:35},{draw:4229,date:"21/06/2026",nums:[10,12,23,28,43,56],extra:31},{draw:4228,date:"19/06/2026",nums:[5,12,25,37,39,43],extra:33},{draw:4227,date:"17/06/2026",nums:[2,6,8,12,29,34],extra:13},{draw:4226,date:"14/06/2026",nums:[19,23,34,41,48,55],extra:2}],
+revancha:[
+{draw:4240,date:"17/07/2026",nums:[8,26,30,46,53,55]},{draw:4239,date:"15/07/2026",nums:[3,18,32,47,50,51]},{draw:4238,date:"12/07/2026",nums:[6,10,13,18,39,40]},{draw:4237,date:"10/07/2026",nums:[8,27,28,33,39,55]},{draw:4236,date:"08/07/2026",nums:[3,15,25,49,51,56]},{draw:4235,date:"05/07/2026",nums:[2,23,25,30,32,54]},{draw:4234,date:"03/07/2026",nums:[1,5,6,13,35,43]},{draw:4233,date:"01/07/2026",nums:[2,25,31,32,52,55]},{draw:4232,date:"28/06/2026",nums:[7,19,24,28,49,55]},{draw:4231,date:"26/06/2026",nums:[4,11,17,34,40,47]},{draw:4230,date:"24/06/2026",nums:[6,10,17,29,42,53]},{draw:4229,date:"21/06/2026",nums:[2,6,27,28,41,53]},{draw:4228,date:"19/06/2026",nums:[1,13,17,31,38,53]},{draw:4227,date:"17/06/2026",nums:[4,18,34,45,55,56]},{draw:4226,date:"14/06/2026",nums:[3,22,35,38,42,53]}],
+revanchita:[
+{draw:4240,date:"17/07/2026",nums:[1,4,5,33,34,46]},{draw:4239,date:"15/07/2026",nums:[15,17,34,35,41,42]},{draw:4238,date:"12/07/2026",nums:[4,8,21,25,27,40]},{draw:4237,date:"10/07/2026",nums:[10,14,19,38,40,54]},{draw:4236,date:"08/07/2026",nums:[4,8,10,22,27,42]},{draw:4235,date:"05/07/2026",nums:[7,12,14,22,52,55]},{draw:4234,date:"03/07/2026",nums:[2,12,38,52,54,55]},{draw:4233,date:"01/07/2026",nums:[4,15,25,26,27,49]},{draw:4232,date:"28/06/2026",nums:[8,10,20,24,31,56]},{draw:4231,date:"26/06/2026",nums:[4,7,9,36,38,39]},{draw:4230,date:"24/06/2026",nums:[4,18,21,23,39,45]},{draw:4229,date:"21/06/2026",nums:[2,8,11,18,19,21]},{draw:4228,date:"19/06/2026",nums:[13,15,16,22,36,37]},{draw:4227,date:"17/06/2026",nums:[14,24,39,40,47,54]},{draw:4226,date:"14/06/2026",nums:[5,10,13,30,43,45]}]
+};
+
+const FILE_CANDIDATES={
+ melate:["Melate.csv","melate.csv","MELATE.csv"],
+ revancha:["revancha.csv","Revancha.csv","REVANCHA.csv"],
+ revanchita:["Revanchita.csv","revanchita.csv","REVANCHITA.csv"]
+};
+
+let DATA={melate:[],revancha:[],revanchita:[]};
+let loaded={melate:false,revancha:false,revanchita:false};
+let current="melate";
+let FAST_PREP={};
+let MATRIX_WINNERS={};
+
+function parseCSV(text,game){
+ const rows=text.replace(/\r/g,"").split("\n");
+ const out=[];
+ for(const raw of rows){
+  if(!raw.trim()) continue;
+  const c=raw.split(",").map(x=>x.trim().replace(/^"|"$/g,""));
+  const prod=Number(c[0]), draw=Number(c[1]);
+  if(!Number.isFinite(prod)||!Number.isFinite(draw)||draw<=0) continue;
+  const hasExtra=game==="melate";
+  const need=hasExtra?11:10;
+  if(c.length<need) continue;
+  const nums=c.slice(2,8).map(Number);
+  if(nums.length!==6||nums.some(n=>!Number.isFinite(n)||n<1||n>56)) continue;
+  let extra=null,date="";
+  if(hasExtra){ extra=Number(c[8]); date=c[10]||""; }
+  else { date=c[9]||""; }
+  out.push({draw,date,nums,extra:Number.isFinite(extra)?extra:null});
+ }
+ out.sort((a,b)=>b.draw-a.draw);
+ const seen=new Set();
+ return out.filter(x=>{if(seen.has(x.draw))return false;seen.add(x.draw);return true});
+}
+
+async function fetchFirst(paths){
+ for(const p of paths){
+  try{
+   const r=await fetch("./"+p+"?v="+Date.now(),{cache:"no-store"});
+   if(r.ok) return await r.text();
+  }catch(e){}
+ }
+ throw new Error("No encontrado");
+}
+
+async function loadData(){
+ const results=await Promise.allSettled(Object.keys(FILE_CANDIDATES).map(async game=>{
+  const txt=await fetchFirst(FILE_CANDIDATES[game]);
+  const parsed=parseCSV(txt,game);
+  if(parsed.length<10) throw new Error("Archivo inválido");
+  DATA[game]=parsed;loaded[game]=true;
+ }));
+ for(const g of Object.keys(DATA)){
+  if(!DATA[g].length) DATA[g]=FALLBACK[g];
+ }
+ const ok=Object.values(loaded).filter(Boolean).length;
+ const s=document.getElementById("dataStatus");
+ if(ok===3){
+  s.className="status ok";
+  s.textContent=`✓ Históricos completos cargados: Melate ${DATA.melate.length.toLocaleString()} · Revancha ${DATA.revancha.length.toLocaleString()} · Revanchita ${DATA.revanchita.length.toLocaleString()}`;
+ }else{
+  s.className="status warn";
+  s.textContent=`⚠ Modo parcial: ${ok}/3 archivos históricos encontrados. Donde falte un CSV se usan 15 sorteos de respaldo.`;
+ }
+ render();
+}
+
+function getWindow(draws){
+ const v=document.getElementById("windowSelect").value;
+ return v==="all"?draws:draws.slice(0,Math.min(Number(v),draws.length));
+}
+
+function statsFor(draws,windowDraws){
+ const totalN=draws.length,winN=windowDraws.length;
+ const shortN=Math.max(1,Math.min(winN,Math.max(5,Math.min(20,Math.floor(winN/4)||5))));
+ const stats=[];
+ for(let n=1;n<=56;n++){
+  let all=0,win=0,last=-1,positions=[],winPositions=[];
+  draws.forEach((d,i)=>{if(d.nums.includes(n)){all++;if(last<0)last=i;positions.push(i)}});
+  windowDraws.forEach((d,i)=>{if(d.nums.includes(n)){win++;winPositions.push(i)}});
+  let gaps=[];
+  for(let i=1;i<positions.length;i++)gaps.push(positions[i]-positions[i-1]);
+  const avgGap=gaps.length?gaps.reduce((a,b)=>a+b,0)/gaps.length:(totalN||1);
+  let winGaps=[];
+  for(let i=1;i<winPositions.length;i++)winGaps.push(winPositions[i]-winPositions[i-1]);
+  const avgGapWin=winGaps.length?winGaps.reduce((a,b)=>a+b,0)/winGaps.length:(winN/Math.max(1,win)||winN||1);
+  const recent20=draws.slice(0,Math.min(20,totalN)).filter(d=>d.nums.includes(n)).length;
+  const recent100=draws.slice(0,Math.min(100,totalN)).filter(d=>d.nums.includes(n)).length;
+  const recentShort=windowDraws.slice(0,shortN).filter(d=>d.nums.includes(n)).length;
+  const rateAll=totalN?all/totalN:0;
+  const rateWin=winN?win/winN:0;
+  const rate20=recent20/Math.max(1,Math.min(20,totalN));
+  const rate100=recent100/Math.max(1,Math.min(100,totalN));
+  const rateShort=recentShort/Math.max(1,shortN);
+  const trend=rate20-rateAll;
+  const trendWindow=rateShort-rateWin;
+  const delayRatio=Math.min(last<0?winN+1:last,winN+1)/Math.max(1,avgGapWin);
+  stats.push({n,all,win,last:last<0?totalN:last,avgGap,avgGapWin,recent20,recent100,recentShort,rateAll,rateWin,rate20,rate100,rateShort,trend,trendWindow,delayRatio,winN,shortN});
+ }
+ const max=(k)=>Math.max(...stats.map(x=>x[k]),1);
+ const maxTrend=Math.max(...stats.map(x=>Math.max(0,x.trendWindow)),.0001);
+ stats.forEach(x=>{
+  const winNorm=x.win/max("win");
+  const shortNorm=x.recentShort/max("recentShort");
+  const r100=x.recent100/max("recent100");
+  const allNorm=x.all/max("all");
+  const trendNorm=Math.max(0,x.trendWindow)/maxTrend;
+  x.score=Math.round(100*(.32*winNorm+.24*shortNorm+.18*r100+.16*allNorm+.10*trendNorm));
+ });
+ return stats.sort((a,b)=>b.score-a.score||b.win-a.win||a.n-b.n);
+}
+
+function pairStats(windowDraws){
+ const m=new Map();
+ for(const d of windowDraws){
+  const a=[...d.nums].sort((x,y)=>x-y);
+  for(let i=0;i<a.length;i++)for(let j=i+1;j<a.length;j++){
+   const k=a[i]+"-"+a[j];m.set(k,(m.get(k)||0)+1);
+  }
+ }
+ return [...m.entries()].map(([k,count])=>({nums:k.split("-").map(Number),count})).sort((a,b)=>b.count-a.count||a.nums[0]-b.nums[0]);
+}
+
+function tripleStats(windowDraws){
+ const m=new Map();
+ for(const d of windowDraws){
+  const a=[...d.nums].sort((x,y)=>x-y);
+  for(let i=0;i<a.length;i++)for(let j=i+1;j<a.length;j++)for(let k=j+1;k<a.length;k++){
+   const key=a[i]+"-"+a[j]+"-"+a[k];m.set(key,(m.get(key)||0)+1);
+  }
+ }
+ return [...m.entries()].map(([key,count])=>({nums:key.split("-").map(Number),count}))
+  .sort((a,b)=>b.count-a.count||a.nums[0]-b.nums[0]);
+}
+
+function companionStats(windowDraws,target){
+ const m=new Map();
+ for(const d of windowDraws){
+  if(!d.nums.includes(target)) continue;
+  for(const n of d.nums) if(n!==target) m.set(n,(m.get(n)||0)+1);
+ }
+ return [...m.entries()].map(([n,count])=>({n,count})).sort((a,b)=>b.count-a.count||a.n-b.n);
+}
+
+function profile(windowDraws){
+ const sums=windowDraws.map(d=>d.nums.reduce((a,b)=>a+b,0));
+ const evens=windowDraws.map(d=>d.nums.filter(n=>n%2===0).length);
+ const highs=windowDraws.map(d=>d.nums.filter(n=>n>=29).length);
+ const consecutive=windowDraws.map(d=>{const a=[...d.nums].sort((x,y)=>x-y);let c=0;for(let i=1;i<a.length;i++)if(a[i]===a[i-1]+1)c++;return c});
+ const repeats=windowDraws.slice(0,-1).map((d,i)=>d.nums.filter(n=>windowDraws[i+1].nums.includes(n)).length);
+ const avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0;
+ return {avgSum:avg(sums),avgEven:avg(evens),avgHigh:avg(highs),avgConsecutive:avg(consecutive),avgRepeat:avg(repeats),minSum:Math.min(...sums),maxSum:Math.max(...sums)};
+}
+
+function ball(n){return `<div class="ball">${String(n).padStart(2,"0")}</div>`}
+
+function weightedPick(stats,model){
+ let pool=stats.map(x=>({...x})),out=[];
+ while(out.length<6&&pool.length){
+  let weights=pool.map(x=>{
+   if(model==="trend") return Math.max(1,10+100*x.rateShort+80*Math.max(0,x.trendWindow)+25*x.rateWin);
+   if(model==="historic") return Math.max(1,10+120*x.rateWin+20*x.rateAll);
+   if(model==="delayed") return Math.max(1,10+45*Math.min(4,x.delayRatio));
+   return Math.max(1,x.score);
+  });
+  const sum=weights.reduce((a,b)=>a+b,0);let r=Math.random()*sum,i=0;
+  for(;i<pool.length;i++){r-=weights[i];if(r<=0)break}
+  i=Math.min(i,pool.length-1);out.push(pool[i].n);pool.splice(i,1);
+ }
+ return out.sort((a,b)=>a-b);
+}
+
+function deterministicPick(stats,model){
+ const a=[...stats];
+ if(model==="trend") a.sort((x,y)=>(y.rateShort+Math.max(0,y.trendWindow))-(x.rateShort+Math.max(0,x.trendWindow))||y.rateWin-x.rateWin||x.n-y.n);
+ else if(model==="historic") a.sort((x,y)=>y.rateWin-x.rateWin||y.win-x.win||y.rateAll-x.rateAll||x.n-y.n);
+ else if(model==="delayed") a.sort((x,y)=>y.delayRatio-x.delayRatio||y.last-x.last||x.n-y.n);
+ else a.sort((x,y)=>y.score-x.score||y.win-x.win||x.n-y.n);
+ return a.slice(0,6).map(x=>x.n).sort((a,b)=>a-b);
+}
+
+function hits(pred,actual){return pred.filter(n=>actual.includes(n)).length}
+
+function comb(n,k){
+ if(k<0||k>n)return 0;
+ k=Math.min(k,n-k);let r=1;
+ for(let i=1;i<=k;i++)r=r*(n-k+i)/i;
+ return r;
+}
+
+function randomAtLeast(k){
+ let p=0,den=comb(56,6);
+ for(let i=k;i<=6;i++)p+=comb(6,i)*comb(50,6-i)/den;
+ return p;
+}
+
+function renderNumberInspector(draws,windowDraws,stats){
+ const sel=document.getElementById("numberSelect");
+ if(!sel.options.length){
+  for(let n=1;n<=56;n++){const o=document.createElement("option");o.value=n;o.textContent=String(n).padStart(2,"0");sel.appendChild(o)}
+  sel.value="23";
+ }
+ const n=Number(sel.value||23),x=stats.find(v=>v.n===n);
+ if(!x)return;
+ const trendPct=(100*x.trend).toFixed(2);
+ document.getElementById("numberDetails").innerHTML=`
+  <div class="metric"><b>${x.win}</b><span>Veces en ventana</span></div>
+  <div class="metric"><b>${x.all}</b><span>Veces históricas</span></div>
+  <div class="metric"><b>${x.recent20}</b><span>Últimos 20</span></div>
+  <div class="metric"><b>${x.recent100}</b><span>Últimos 100</span></div>
+  <div class="metric"><b>${x.last}</b><span>Sorteos desde última aparición</span></div>
+  <div class="metric"><b>${x.avgGap.toFixed(1)}</b><span>Separación histórica promedio</span></div>
+  <div class="metric"><b>${trendPct}%</b><span>Tendencia vs histórico</span></div>
+  <div class="metric"><b>${x.score}</b><span>Índice equilibrado</span></div>`;
+ const comps=companionStats(windowDraws,n).slice(0,8);
+ document.getElementById("companions").innerHTML=comps.length?comps.map(c=>`<span class="chip">${String(c.n).padStart(2,"0")} · ${c.count}</span>`).join(""):`<span class="muted">Sin coincidencias en esta ventana.</span>`;
+}
+
+async function runBacktest(){
+ const draws=DATA[current];
+ const requested=Number(document.getElementById("btTests").value);
+ const trainWindow=Number(document.getElementById("btWindow").value);
+ const maxTests=Math.min(requested,Math.max(0,draws.length-31));
+ const status=document.getElementById("btStatus"),bar=document.getElementById("btProgress"),out=document.getElementById("btResults");
+ if(maxTests<10){status.textContent="No hay suficientes sorteos para ejecutar el backtesting.";return}
+ status.textContent=`Calculando ${maxTests} sorteos históricos sin usar información futura…`;
+ out.innerHTML="";bar.style.width="0%";
+ await new Promise(r=>setTimeout(r,30));
+ const models=["balanced","trend","historic","delayed"];
+ const res={};models.forEach(m=>res[m]={total:0,best:0,h2:0,h3:0,h4:0,dist:[0,0,0,0,0,0,0]});
+ for(let i=0;i<maxTests;i++){
+  const target=draws[i];
+  const training=draws.slice(i+1);
+  const w=training.slice(0,Math.min(trainWindow,training.length));
+  const st=statsFor(training,w);
+  for(const m of models){
+   const h=hits(deterministicPick(st,m),target.nums),r=res[m];
+   r.total+=h;r.best=Math.max(r.best,h);r.dist[h]++;if(h>=2)r.h2++;if(h>=3)r.h3++;if(h>=4)r.h4++;
+  }
+  if(i%10===0){bar.style.width=`${Math.round(100*(i+1)/maxTests)}%`;await new Promise(r=>setTimeout(r,0))}
+ }
+ bar.style.width="100%";
+ const names={balanced:"Equilibrada",trend:"Tendencia",historic:"Histórica",delayed:"Atraso"};
+ let html=`<table class="bt-table"><thead><tr><th>Modelo</th><th>Prom.</th><th>2+</th><th>3+</th><th>4+</th><th>Mejor</th></tr></thead><tbody>`;
+ for(const m of models){
+  const r=res[m],avg=r.total/maxTests;
+  html+=`<tr><td>${names[m]}</td><td class="${avg>36/56?'bt-good':''}">${avg.toFixed(3)}</td><td>${r.h2}</td><td>${r.h3}</td><td>${r.h4}</td><td>${r.best}</td></tr>`;
+ }
+ const exp2=maxTests*randomAtLeast(2),exp3=maxTests*randomAtLeast(3),exp4=maxTests*randomAtLeast(4);
+ html+=`<tr><td>Azar teórico</td><td>${(36/56).toFixed(3)}</td><td>≈${exp2.toFixed(1)}</td><td>≈${exp3.toFixed(1)}</td><td>≈${exp4.toFixed(1)}</td><td>—</td></tr></tbody></table>`;
+ out.innerHTML=html;
+ status.textContent=`Backtesting terminado: ${maxTests} sorteos, entrenamiento con hasta ${trainWindow} sorteos previos.`;
+}
+
+function lowerBound(arr,x){
+ let lo=0,hi=arr.length;
+ while(lo<hi){const mid=(lo+hi)>>1;if(arr[mid]<x)lo=mid+1;else hi=mid}
+ return lo;
+}
+
+function buildFastPrep(draws){
+ const N=draws.length;
+ const prefix=Array.from({length:N+1},()=>new Uint16Array(57));
+ const occ=Array.from({length:57},()=>[]);
+ for(let i=0;i<N;i++){
+  prefix[i+1].set(prefix[i]);
+  for(const n of draws[i].nums){prefix[i+1][n]++;occ[n].push(i)}
+ }
+ return {N,prefix,occ};
+}
+
+function fastStatsAt(draws,prep,start,winSize){
+ const N=prep.N,totalN=Math.max(0,N-start),stats=[];
+ const winN=Math.max(1,Math.min(winSize,totalN));
+ const endWin=Math.min(N,start+winN);
+ const shortN=Math.max(1,Math.min(winN,Math.max(5,Math.min(20,Math.floor(winN/4)||5))));
+ const endShort=Math.min(N,start+shortN),end20=Math.min(N,start+20),end100=Math.min(N,start+100);
+ for(let n=1;n<=56;n++){
+  const all=prep.prefix[N][n]-prep.prefix[start][n];
+  const win=prep.prefix[endWin][n]-prep.prefix[start][n];
+  const recentShort=prep.prefix[endShort][n]-prep.prefix[start][n];
+  const recent20=prep.prefix[end20][n]-prep.prefix[start][n];
+  const recent100=prep.prefix[end100][n]-prep.prefix[start][n];
+  const list=prep.occ[n],j=lowerBound(list,start),jWinEnd=lowerBound(list,endWin);
+  const first=j<list.length?list[j]:-1;
+  const last=first<0?totalN:first-start;
+  let avgGap=totalN||1;
+  if(all>=2){
+   const lastOcc=list[list.length-1];
+   avgGap=(lastOcc-first)/(all-1);
+  }
+  let avgGapWin=winN/Math.max(1,win);
+  if(win>=2&&jWinEnd-j>=2) avgGapWin=(list[jWinEnd-1]-list[j])/(jWinEnd-j-1);
+  const rateAll=totalN?all/totalN:0;
+  const rateWin=win/winN;
+  const rateShort=recentShort/shortN;
+  const rate20=recent20/Math.max(1,Math.min(20,totalN));
+  const rate100=recent100/Math.max(1,Math.min(100,totalN));
+  const trend=rate20-rateAll;
+  const trendWindow=rateShort-rateWin;
+  const delayRatio=Math.min(last,winN+1)/Math.max(1,avgGapWin);
+  stats.push({n,all,win,last,avgGap,avgGapWin,recentShort,recent20,recent100,rateAll,rateWin,rateShort,rate20,rate100,trend,trendWindow,delayRatio,winN,shortN});
+ }
+ const max=k=>Math.max(...stats.map(x=>x[k]),1);
+ const maxTrend=Math.max(...stats.map(x=>Math.max(0,x.trendWindow)),.0001);
+ stats.forEach(x=>{
+  const winNorm=x.win/max("win"),shortNorm=x.recentShort/max("recentShort"),r100=x.recent100/max("recent100");
+  const allNorm=x.all/max("all"),trendNorm=Math.max(0,x.trendWindow)/maxTrend;
+  x.score=Math.round(100*(.32*winNorm+.24*shortNorm+.18*r100+.16*allNorm+.10*trendNorm));
+ });
+ return stats.sort((a,b)=>b.score-a.score||b.win-a.win||a.n-b.n);
+}
+
+function blankResult(){return {total:0,best:0,h2:0,h3:0,h4:0,count:0}}
+function addHitResult(r,h){r.total+=h;r.count++;r.best=Math.max(r.best,h);if(h>=2)r.h2++;if(h>=3)r.h3++;if(h>=4)r.h4++}
+function avgResult(r){return r.count?r.total/r.count:0}
+
+async function runMatrix(){
+ const draws=DATA[current];
+ const outerSize=Number(document.getElementById("mxValidation").value);
+ const innerSize=Number(document.getElementById("mxFoldSize").value);
+ const outerReq=Number(document.getElementById("mxFolds").value);
+ const innerFolds=Number(document.getElementById("mxInnerFolds").value);
+ const simulations=Number(document.getElementById("mxSims").value);
+ const status=document.getElementById("mxStatus"),bar=document.getElementById("mxProgress");
+ const out=document.getElementById("mxResults"),winnerBox=document.getElementById("mxWinner");
+ const genBtn=document.getElementById("generateWinner"),gen=document.getElementById("mxGenerated");
+ const windows=[20,50,100,200,500],models=["balanced","trend","historic","delayed"];
+ const names={balanced:"Equilibrada",trend:"Tendencia",historic:"Histórica",delayed:"Atraso"};
+ const baseline=36/56,minHistory=500;
+ const available=Math.max(0,draws.length-innerFolds*innerSize-minHistory);
+ const outerPeriods=Math.min(outerReq,Math.floor(available/outerSize));
+ if(outerPeriods<3){
+  status.textContent="No hay suficientes sorteos para construir al menos 3 periodos exteriores con la selección interna solicitada y 500 sorteos de historial mínimo.";
+  return;
+ }
+ if(!FAST_PREP[current]) FAST_PREP[current]=buildFastPrep(draws);
+ const prep=FAST_PREP[current];
+ out.innerHTML="";winnerBox.innerHTML="";gen.innerHTML="";genBtn.classList.add("hidden");
+ bar.style.width="0%";
+ status.textContent=`Validación anidada: ${outerPeriods} periodos exteriores × ${outerSize} sorteos. En cada uno se selecciona entre 20 configuraciones usando ${innerFolds} periodos internos × ${innerSize} sorteos, sin ver el bloque exterior…`;
+ await new Promise(r=>setTimeout(r,30));
+
+ function mean(a){return a.length?a.reduce((x,y)=>x+y,0)/a.length:0}
+ function sd(a){
+  if(a.length<2)return 0;
+  const m=mean(a);
+  return Math.sqrt(a.reduce((q,x)=>q+(x-m)*(x-m),0)/(a.length-1));
+ }
+ function clamp01(x){return Math.max(0,Math.min(1,x))}
+ function rankInner(results,folds){
+  for(const r of Object.values(results)){
+   r.foldMean=mean(r.folds);
+   r.foldSd=sd(r.folds);
+   r.above=r.folds.filter(x=>x>baseline).length;
+   r.minFold=Math.min(...r.folds);
+   const aboveRate=r.above/folds;
+   const stability=clamp01(1-r.foldSd/.20);
+   const liftQuality=clamp01((r.foldMean-(baseline-.10))/.20);
+   const floorQuality=clamp01((r.minFold-(baseline-.15))/.25);
+   r.robustness=100*(.40*aboveRate+.30*stability+.20*liftQuality+.10*floorQuality);
+  }
+  return Object.values(results).sort((a,b)=>
+   b.robustness-a.robustness||b.above-a.above||b.foldMean-a.foldMean||a.foldSd-b.foldSd||b.h3-a.h3||a.window-b.window
+  );
+ }
+ function evalRange(start,end,model,window){
+  const r=blankResult(),list=[];
+  for(let i=start;i<end;i++){
+   const st=fastStatsAt(draws,prep,i+1,window);
+   const h=hits(deterministicPick(st,model),draws[i].nums);
+   addHitResult(r,h);list.push(h);
+  }
+  return {result:r,hits:list};
+ }
+ function selectAt(testEnd){
+  const results={};
+  for(const w of windows)for(const m of models)results[`${m}-${w}`]={model:m,window:w,folds:[],...blankResult()};
+  for(let f=0;f<innerFolds;f++){
+   const foldStart=testEnd+f*innerSize,foldEnd=foldStart+innerSize;
+   const foldRes={};
+   for(const w of windows)for(const m of models)foldRes[`${m}-${w}`]=blankResult();
+   for(let i=foldStart;i<foldEnd;i++){
+    for(const w of windows){
+     const st=fastStatsAt(draws,prep,i+1,w);
+     for(const m of models){
+      const h=hits(deterministicPick(st,m),draws[i].nums);
+      addHitResult(foldRes[`${m}-${w}`],h);
+      addHitResult(results[`${m}-${w}`],h);
+     }
+    }
+   }
+   for(const key of Object.keys(results))results[key].folds.push(avgResult(foldRes[key]));
+  }
+  return rankInner(results,innerFolds)[0];
+ }
+
+ const outerRows=[],allHits=[],selectionCounts=new Map();
+ let totalWork=outerPeriods*(innerFolds*innerSize*windows.length+outerSize),done=0;
+ for(let p=0;p<outerPeriods;p++){
+  const testStart=p*outerSize,testEnd=testStart+outerSize;
+  status.textContent=`Periodo exterior ${p+1}/${outerPeriods}: seleccionando configuración solo con información más antigua…`;
+  const best=selectAt(testEnd);
+  done+=innerFolds*innerSize*windows.length;
+  bar.style.width=`${Math.round(82*done/totalWork)}%`;
+  await new Promise(r=>setTimeout(r,0));
+
+  const ev=evalRange(testStart,testEnd,best.model,best.window);
+  allHits.push(...ev.hits);
+  const avg=avgResult(ev.result);
+  const key=`${best.model}-${best.window}`;
+  selectionCounts.set(key,(selectionCounts.get(key)||0)+1);
+  outerRows.push({
+   period:p+1,model:best.model,window:best.window,innerRobustness:best.robustness,
+   innerMean:best.foldMean,testAvg:avg,h2:ev.result.h2,h3:ev.result.h3,h4:ev.result.h4,best:ev.result.best
+  });
+  done+=outerSize;
+  bar.style.width=`${Math.round(82*done/totalWork)}%`;
+  await new Promise(r=>setTimeout(r,0));
+ }
+
+ const n=allHits.length,avg=mean(allHits),sampleSd=sd(allHits),se=sampleSd/Math.sqrt(Math.max(1,n));
+ const ciLow=Math.max(0,avg-1.96*se),ciHigh=Math.min(6,avg+1.96*se);
+ const nullVar=6*(6/56)*(50/56)*(50/55);
+ const nullSe=Math.sqrt(nullVar/n);
+ const z=nullSe?((avg-baseline)/nullSe):0;
+ function erf(x){
+  const sign=x<0?-1:1,a=Math.abs(x),t=1/(1+.3275911*a);
+  const y=1-(((((1.061405429*t-1.453152027)*t)+1.421413741)*t-.284496736)*t+.254829592)*t*Math.exp(-a*a);
+  return sign*y;
+ }
+ function normalCdf(x){return .5*(1+erf(x/Math.sqrt(2)))}
+ const pTwo=Math.max(0,Math.min(1,2*(1-normalCdf(Math.abs(z)))));
+
+ const probs=[];
+ const den=comb(56,6);
+ for(let h=0;h<=6;h++)probs.push(comb(6,h)*comb(50,6-h)/den);
+ const cdf=[];let acc=0;for(const p of probs){acc+=p;cdf.push(acc)}
+ function rngFactory(seed){
+  let a=seed>>>0;
+  return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return ((t^t>>>14)>>>0)/4294967296}
+ }
+ const seed=(current==="melate"?4240:current==="revancha"?3232:1870)+n+simulations;
+ const rnd=rngFactory(seed),simMeans=[];
+ let simAbove=0;
+ for(let s=0;s<simulations;s++){
+  let total=0;
+  for(let j=0;j<n;j++){
+   const u=rnd();let h=0;while(h<6&&u>cdf[h])h++;total+=h;
+  }
+  const m=total/n;simMeans.push(m);if(m>=avg)simAbove++;
+  if(s%500===0){bar.style.width=`${82+Math.round(17*(s+1)/simulations)}%`;await new Promise(r=>setTimeout(r,0))}
+ }
+ simMeans.sort((a,b)=>a-b);
+ const q95=simMeans[Math.min(simMeans.length-1,Math.floor(.95*simMeans.length))];
+ const q99=simMeans[Math.min(simMeans.length-1,Math.floor(.99*simMeans.length))];
+ const mcP=(simAbove+1)/(simulations+1);
+ bar.style.width="100%";
+
+ const periodsAbove=outerRows.filter(x=>x.testAvg>baseline).length;
+ const configFreq=[...selectionCounts.entries()].map(([key,count])=>{
+  const [model,window]=key.split("-");
+  return {model,window:Number(window),count};
+ }).sort((a,b)=>b.count-a.count||a.window-b.window);
+ const most=configFreq[0];
+
+ // Selección vigente para el próximo sorteo: usa únicamente bloques históricos recientes.
+ const currentBest=selectAt(0);
+ MATRIX_WINNERS[current]={
+  model:currentBest.model,window:currentBest.window,robustness:currentBest.robustness,
+  nestedAvg:avg,periodsAbove,outerPeriods,outerSize,innerFolds,innerSize,pTwo,mcP
+ };
+
+ let table=`<table class="bt-table"><thead><tr><th>Periodo exterior</th><th>Elegido</th><th>Vent.</th><th>Prueba</th><th>2+</th><th>3+</th></tr></thead><tbody>`;
+ outerRows.forEach(r=>{
+  table+=`<tr><td>${r.period}</td><td>${names[r.model]}</td><td>${r.window}</td><td class="${r.testAvg>baseline?'bt-good':''}">${r.testAvg.toFixed(3)}</td><td>${r.h2}</td><td>${r.h3}</td></tr>`;
+ });
+ table+=`</tbody></table>`;
+ out.innerHTML=table;
+
+ const delta=avg-baseline,cls=delta>=0?"delta-pos":"delta-neg";
+ const verdict=delta>0?"por encima":"por debajo";
+ const freqText=configFreq.slice(0,5).map(x=>`<span class="pill">${names[x.model]} ${x.window}: ${x.count}/${outerPeriods}</span>`).join("");
+ const sigText=pTwo<.05?"La diferencia supera el umbral descriptivo p&lt;0.05":"La diferencia no alcanza el umbral descriptivo p&lt;0.05";
+ winnerBox.innerHTML=`<div class="winner-card">
+  <h3>🏁 Resultado de la estrategia anidada</h3>
+  <div class="matrix-summary">
+   <div class="metric"><b class="${cls}">${avg.toFixed(3)}</b><span>Media exterior agregada (${n} sorteos)</span></div>
+   <div class="metric"><b>${periodsAbove}/${outerPeriods}</b><span>Periodos exteriores por encima del azar</span></div>
+   <div class="metric"><b>${ciLow.toFixed(3)}–${ciHigh.toFixed(3)}</b><span>IC 95% aproximado de la media</span></div>
+  </div>
+  <p class="note"><b>Referencia teórica:</b> ${baseline.toFixed(3)} · resultado ${verdict} por ${Math.abs(delta).toFixed(3)}.</p>
+  <div class="matrix-summary">
+   <div class="metric"><b>${z.toFixed(2)}</b><span>z aproximado frente al azar</span></div>
+   <div class="metric"><b>${pTwo.toFixed(4)}</b><span>p bilateral aproximado</span></div>
+   <div class="metric"><b>${mcP.toFixed(4)}</b><span>Fracción de ${simulations.toLocaleString()} simulaciones ≥ resultado</span></div>
+  </div>
+  <p class="note"><b>Simulación de azar:</b> percentil 95 ≈ ${q95.toFixed(3)} · percentil 99 ≈ ${q99.toFixed(3)}. ${sigText}.</p>
+  <h3 style="margin-top:14px">Configuraciones elegidas durante el walk-forward</h3>
+  <div>${freqText}</div>
+  <p class="note">La configuración más repetida fue <b>${names[most.model]} ${most.window}</b> (${most.count}/${outerPeriods}), pero la estrategia pudo cambiar de modelo y ventana en cada periodo sin ver su bloque exterior.</p>
+  <h3 style="margin-top:14px">Selección vigente para el próximo sorteo</h3>
+  <div class="matrix-summary">
+   <div class="metric"><b>${names[currentBest.model]}</b><span>Modelo elegido con los periodos históricos más recientes</span></div>
+   <div class="metric"><b>${currentBest.window}</b><span>Ventana</span></div>
+   <div class="metric"><b>${currentBest.robustness.toFixed(1)}</b><span>Robustez interna / 100</span></div>
+  </div>
+  <p class="note">Esta selección sirve únicamente como experimento prospectivo. La prueba realmente nueva comienza con sorteos futuros que todavía no forman parte del archivo histórico.</p>
+ </div>`;
+ genBtn.classList.remove("hidden");
+ status.textContent=`Validación anidada v0.8 terminada: ${outerPeriods} periodos exteriores × ${outerSize} sorteos; selección interna con ${innerFolds} × ${innerSize}; ${simulations.toLocaleString()} simulaciones de azar.`;
+}
+
+function useMatrixWinner(){
+ const win=MATRIX_WINNERS[current],box=document.getElementById("mxGenerated");
+ if(!win){box.innerHTML="";return}
+ const draws=DATA[current];
+ const w=draws.slice(0,Math.min(win.window,draws.length));
+ const st=statsFor(draws,w);
+ const nums=deterministicPick(st,win.model);
+ box.innerHTML=nums.map(ball).join("");
+}
+
+function render(){
+ const draws=DATA[current];if(!draws.length)return;
+ const windowDraws=getWindow(draws),stats=statsFor(draws,windowDraws),latest=draws[0],prof=profile(windowDraws);
+ document.getElementById("latest").innerHTML=latest.nums.map(ball).join("");
+ document.getElementById("info").textContent=`Sorteo ${latest.draw} · ${latest.date||"fecha no disponible"} · ${draws.length.toLocaleString()} sorteos disponibles`;
+ document.getElementById("totalDraws").textContent=draws.length.toLocaleString();
+ document.getElementById("windowDraws").textContent=windowDraws.length.toLocaleString();
+ document.getElementById("avgSum").textContent=prof.avgSum.toFixed(1);
+ document.getElementById("avgEven").textContent=prof.avgEven.toFixed(2);
+
+ const hot=[...stats].sort((a,b)=>b.win-a.win||b.score-a.score).slice(0,8);
+ const cold=[...stats].sort((a,b)=>a.win-b.win||a.all-b.all).slice(0,8);
+ const late=[...stats].sort((a,b)=>b.last-a.last).slice(0,8);
+ document.getElementById("hot").innerHTML=hot.map(x=>`<span class="chip hot">${String(x.n).padStart(2,"0")} · ${x.win}</span>`).join("");
+ document.getElementById("cold").innerHTML=cold.map(x=>`<span class="chip cold">${String(x.n).padStart(2,"0")} · ${x.win}</span>`).join("");
+ document.getElementById("late").innerHTML=late.map(x=>`<span class="chip late">${String(x.n).padStart(2,"0")} · ${x.last} sorteos</span>`).join("");
+
+ document.getElementById("scores").innerHTML=stats.slice(0,6).map(x=>`<div class="score"><b>${String(x.n).padStart(2,"0")}</b><span>Índice ${x.score}</span></div>`).join("");
+ const maxScore=Math.max(...stats.map(x=>x.score),1);
+ document.getElementById("ranking").innerHTML=stats.slice(0,25).map(x=>`<div class="rank"><b>${String(x.n).padStart(2,"0")}</b><div class="bar"><div class="fill" style="width:${100*x.score/maxScore}%"></div></div><span class="tiny">freq ${x.win}</span><span class="tiny">${x.score} pts</span></div>`).join("");
+
+ const pairs=pairStats(windowDraws).slice(0,10);
+ document.getElementById("pairs").innerHTML=pairs.map(p=>`<div class="pair"><b>${String(p.nums[0]).padStart(2,"0")} + ${String(p.nums[1]).padStart(2,"0")}</b><span>${p.count} veces</span></div>`).join("");
+ const triples=tripleStats(windowDraws).slice(0,10);
+ document.getElementById("triples").innerHTML=triples.map(p=>`<div class="pair"><b>${p.nums.map(n=>String(n).padStart(2,"0")).join(" + ")}</b><span>${p.count} veces</span></div>`).join("");
+
+ document.getElementById("profile").innerHTML=`
+  <div class="metric"><b>${prof.avgSum.toFixed(1)}</b><span>Suma promedio</span></div><br>
+  <div class="metric"><b>${prof.avgEven.toFixed(2)}</b><span>Pares promedio de 6</span></div><br>
+  <div class="metric"><b>${prof.avgHigh.toFixed(2)}</b><span>Números altos (29–56) promedio</span></div><br>
+  <div class="metric"><b>${prof.avgConsecutive.toFixed(2)}</b><span>Pares consecutivos promedio</span></div><br>
+  <div class="metric"><b>${prof.avgRepeat.toFixed(2)}</b><span>Repetidos vs sorteo anterior</span></div><br>
+  <div class="metric"><b>${prof.minSum}–${prof.maxSum}</b><span>Rango de sumas observado</span></div>`;
+ renderNumberInspector(draws,windowDraws,stats);
+
+ document.getElementById("history").innerHTML=draws.slice(0,20).map(x=>`<div class="hist"><b>Sorteo ${x.draw} · ${x.date||""}</b>${x.nums.map(n=>String(n).padStart(2,"0")).join(" · ")}${x.extra?` · Adicional ${String(x.extra).padStart(2,"0")}`:""}</div>`).join("");
+ document.getElementById("generated").innerHTML="";
+ document.getElementById("generatedWhy").textContent="";
+}
+
+document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{
+ current=b.dataset.game;
+ document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x===b));
+ document.getElementById("mxResults").innerHTML="";
+ document.getElementById("mxWinner").innerHTML="";
+ document.getElementById("mxGenerated").innerHTML="";
+ document.getElementById("mxStatus").textContent="";
+ document.getElementById("mxProgress").style.width="0%";
+ document.getElementById("generateWinner").classList.toggle("hidden",!MATRIX_WINNERS[current]);
+ render();
+});
+document.getElementById("windowSelect").onchange=render;
+document.getElementById("numberSelect").onchange=render;
+document.getElementById("runBacktest").onclick=runBacktest;
+document.getElementById("runMatrix").onclick=runMatrix;
+document.getElementById("generateWinner").onclick=useMatrixWinner;
+document.querySelectorAll(".model").forEach(b=>b.onclick=()=>{
+ const draws=DATA[current],w=getWindow(draws),stats=statsFor(draws,w),model=b.dataset.model;
+ const nums=weightedPick(stats,model);
+ document.getElementById("generated").innerHTML=nums.map(ball).join("");
+ const labels={balanced:"Equilibrada: combina frecuencia de la ventana elegida, tramo reciente, últimos 100 e historial completo.",trend:"Tendencia: compara el tramo más reciente contra la frecuencia de la ventana elegida; por eso cambia al usar 20, 50, 100, 200 o 500.",historic:"Histórica: prioriza la frecuencia observada dentro de la ventana elegida y usa el historial completo solo como desempate.",delayed:"Atraso descriptivo: compara cuánto tiempo lleva un número sin aparecer con su separación media dentro de la ventana elegida. No implica que esté “por salir”."};
+ document.getElementById("generatedWhy").textContent=labels[model];
+});
+
+loadData();
+</script>
+</body>
+</html>
